@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync - Your Health Companion</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>HealthSync</h1>
+        <nav>
+            <ul>
+                <li><a href="#symptom-checker">Symptom Checker</a></li>
+                <li><a href="#med-tracker">Medication Tracker</a></li>
+                <li><a href="#nutrition-guide">Nutrition Guide</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Symptom Checker Section -->
+        <section id="symptom-checker">
+            <h2>AI-Powered Symptom Checker</h2>
+            <p>Enter your symptoms below to get a preliminary diagnosis.</p>
+            <textarea id="symptoms" placeholder="e.g., fever, cough, headache"></textarea>
+            <button onclick="checkSymptoms()">Check Symptoms</button>
+            <div id="diagnosis-result"></div>
+        </section>
+
+        <!-- Medication Tracker Section -->
+        <section id="med-tracker">
+            <h2>Medication Reminder & Tracker</h2>
+            <form id="med-form">
+                <input type="text" id="med-name" placeholder="Medication Name" required>
+                <input type="time" id="med-time" required>
+                <button type="submit">Add Medication</button>
+            </form>
+            <ul id="med-list"></ul>
+        </section>
+
+        <!-- Nutrition Guide Section -->
+        <section id="nutrition-guide">
+            <h2>Health & Nutrition Guide</h2>
+            <p>Get diet recommendations based on your condition.</p>
+            <select id="condition">
+                <option value="diabetes">Diabetes</option>
+                <option value="hypertension">Hypertension</option>
+                <option value="general">General Health</option>
+            </select>
+            <button onclick="getNutritionPlan()">Get Plan</button>
+            <div id="nutrition-result"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 HealthSync. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
