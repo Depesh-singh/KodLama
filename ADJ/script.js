@@ -1,82 +1,238 @@
-// Symptom Checker
+// healthcare.js
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+});
+
+let waterIntake = parseInt(localStorage.getItem('waterIntake')) || 0;
+
+function initializeApp() {
+    // Initialize medication history
+    let medicationHistory = JSON.parse(localStorage.getItem('medicationHistory')) || [];
+    
+    updateMedicationHistoryDisplay(medicationHistory);
+    updateHydrationDisplay(waterIntake);
+
+    // Initialize event listeners
+    document.getElementById('med-form').addEventListener('submit', handleMedicationSubmit);
+    document.querySelectorAll('.glass').forEach(glass => {
+        glass.addEventListener('click', () => handleWaterIntake(glass));
+    });
+}
+
+// Symptom Checker with Emergency Detection
 function checkSymptoms() {
-    const symptoms = document.getElementById('symptoms').value.toLowerCase();
+    const symptomsInput = document.getElementById('symptoms').value.toLowerCase();
     const resultDiv = document.getElementById('diagnosis-result');
-    let diagnosis = '';
+    const emergencyKeywords = {
+        cardiac: ['chest pain', 'shortness of breath', 'arm numbness'],
+        stroke: ['facial drooping', 'slurred speech', 'confusion'],
+        severe: ['unconscious', 'severe bleeding', 'choking'],
+        fever: [ 'cough'],
+        chickenpox: ['rashes']
+    };
 
-    // Simple AI-like logic (for demo purposes)
-    if (symptoms.includes('fever') && symptoms.includes('cough')) {
-        diagnosis = 'Possible Cause: Flu or Cold. Next Steps: Rest, hydrate, and consult a doctor if symptoms persist.';
-    } else if (symptoms.includes('headache') && symptoms.includes('fatigue')) {
-        diagnosis = 'Possible Cause: Stress or Dehydration. Next Steps: Drink water, rest, and monitor symptoms.';
-    }
-    else if (symptoms.includes('fever') && symptoms.includes('body aches')) {
-        diagnosis = 'Possible Cause: Influenza or Viral Infection. Next Steps: Rest, take over-the-counter pain relief, and see a doctor if fever exceeds 103°F (39.4°C).';
-    } else if (symptoms.includes('headache') && symptoms.includes('fatigue')) {
-        diagnosis = 'Possible Cause: Stress or Dehydration. Next Steps: Drink water, rest, and monitor symptoms.';
-    } else if (symptoms.includes('headache') && symptoms.includes('fever')) {
-        diagnosis = 'Possible Cause: Sinus Infection or Flu. Next Steps: Use a warm compress, stay hydrated, and consult a doctor if symptoms worsen.';
-    } else if (symptoms.includes('sore throat') && symptoms.includes('difficulty swallowing')) {
-        diagnosis = 'Possible Cause: Tonsillitis or Pharyngitis. Next Steps: Drink warm tea, avoid irritants, and see a doctor if breathing becomes difficult.';
-    } else if (symptoms.includes('abdominal pain') && symptoms.includes('bloating')) {
-        diagnosis = 'Possible Cause: Indigestion or Gas. Next Steps: Eat smaller meals, avoid carbonated drinks, and consult a doctor if pain persists.';
-    } else if (symptoms.includes('back pain') && symptoms.includes('stiffness')) {
-        diagnosis = 'Possible Cause: Muscle Strain or Poor Posture. Next Steps: Stretch gently, apply heat, and see a healthcare provider if severe.';
-    } else if (symptoms.includes('skin rash') && symptoms.includes('itching')) {
-        diagnosis = 'Possible Cause: Contact Dermatitis or Eczema. Next Steps: Apply a mild moisturizer, avoid scratching, and seek medical advice if spreading.';
-    } else if (symptoms.includes('chills') && symptoms.includes('sweating')) {
-        diagnosis = 'Possible Cause: Infection or Fever Response. Next Steps: Keep warm, monitor temperature, and consult a doctor if prolonged.';
-    } 
-     else {
-        diagnosis = 'Unable to determine. Please provide more details or consult a healthcare professional.';
+    const diagnosticMatrix = {
+        flu: {
+            symptoms: ['fever', 'cough', 'body ache'],
+            advice: 'Rest, hydrate, and consider over-the-counter fever reducers'
+        },
+        migraine: {
+            symptoms: ['headache', 'nausea', 'light sensitivity'],
+            advice: 'Rest in a dark room and apply a cold compress'
+        },
+        allergy: {
+            symptoms: ['sneezing', 'itchy eyes', 'runny nose'],
+            advice: 'Take antihistamines and avoid allergens'
+        }
+    };
+
+    // Emergency check
+    const emergency = Object.entries(emergencyKeywords).find(([condition, keywords]) => 
+        keywords.some(keyword => symptomsInput.includes(keyword))
+    );
+
+    if (emergency) {
+        resultDiv.innerHTML = `
+            <div class="emergency-alert">
+                🚨 EMERGENCY: Possible ${emergency[0].toUpperCase()}<br>
+                ${getEmergencyInstructions(emergency[0])}
+            </div>
+        `;
+        return;
     }
 
-    resultDiv.innerHTML = <strong>Result:</strong> ${diagnosis};
+    // Regular diagnosis
+    const diagnosis = Object.entries(diagnosticMatrix).find(([condition, data]) => 
+        data.symptoms.every(symptom => symptomsInput.includes(symptom))
+    );
+
+    if (diagnosis) {
+        resultDiv.innerHTML = `
+            <div class="diagnosis-card">
+                <h4>Possible ${diagnosis[0].toUpperCase()}</h4>
+                <p>${diagnosis[1].advice}</p>
+                <button onclick="showDetail('${diagnosis[0]}')">More Info</button>
+            </div>
+        `;
+    } else {
+        resultDiv.innerHTML = '<p>No specific diagnosis found. Consult a healthcare professional.</p>';
+    }
+}
+
+function getEmergencyInstructions(condition) {
+    const instructions = {
+        cardiac: 'Call emergency services immediately. Chew aspirin if available.',
+        stroke: 'Note time of onset. Keep patient calm. Do NOT give food/drink.',
+        severe: 'Apply pressure to bleeding. Perform CPR if trained.'
+    };
+    return instructions[condition] || 'Seek immediate medical attention.';
 }
 
 // Medication Tracker
-document.getElementById('med-form').addEventListener('submit', function(e) {
+function handleMedicationSubmit(e) {
     e.preventDefault();
-    const medName = document.getElementById('med-name').value;
-    const medTime = document.getElementById('med-time').value;
-    const medList = document.getElementById('med-list');
+    const formData = new FormData(e.target);
+    const medEntry = {
+        id: Date.now(),
+        name: formData.get('med-name'),
+        time: formData.get('med-time'),
+        dosage: formData.get('med-dosage'),
+        frequency: formData.get('med-frequency'),
+        taken: false
+    };
 
-    const li = document.createElement('li');
-    li.innerHTML = ${medName} - Take at ${medTime} <button onclick="this.parentElement.remove()">Remove</button>;
-    medList.appendChild(li);
+    medicationHistory.push(medEntry);
+    localStorage.setItem('medicationHistory', JSON.stringify(medicationHistory));
+    
+    updateMedicationHistoryDisplay(medicationHistory);
+    scheduleMedicationReminder(medEntry);
+    e.target.reset();
+}
 
-    // Reminder (simulated)
-    setTimeout(() => alert(Reminder: Take ${medName} now!), calculateTimeDifference(medTime));
-
-    this.reset();
-});
-
-function calculateTimeDifference(time) {
+function scheduleMedicationReminder(med) {
     const now = new Date();
-    const [hours, minutes] = time.split(':');
-    const medDate = new Date();
-    medDate.setHours(hours, minutes, 0, 0);
-    return medDate - now > 0 ? medDate - now : 0;
+    const [hours, minutes] = med.time.split(':');
+    const medTime = new Date();
+    medTime.setHours(hours, minutes, 0, 0);
+
+    if (medTime > now) {
+        const timeout = medTime - now;
+        setTimeout(() => {
+            showNotification(`⏰ Take ${med.dosage}mg of ${med.name}`);
+            document.querySelector(`[data-med-id="${med.id}"]`).classList.add('urgent');
+        }, timeout);
+    }
+}
+
+function updateMedicationHistoryDisplay(history) {
+    const medList = document.getElementById('med-list');
+    medList.innerHTML = history.map(med => `
+        <div class="med-item" data-med-id="${med.id}">
+            <span>${med.name} (${med.dosage}mg)</span>
+            <span>${med.time} - ${med.frequency}</span>
+            <button onclick="markAsTaken(${med.id})">✔️ Taken</button>
+        </div>
+    `).join('');
+}
+
+function markAsTaken(medId) {
+    medicationHistory = medicationHistory.map(med => 
+        med.id === medId ? {...med, taken: true} : med
+    );
+    localStorage.setItem('medicationHistory', JSON.stringify(medicationHistory));
+    updateMedicationHistoryDisplay(medicationHistory);
 }
 
 // Nutrition Guide
+const nutritionPlans = {
+    diabetes: {
+        meals: {
+            breakfast: 'Whole grain toast with avocado and poached egg',
+            lunch: 'Grilled chicken with quinoa and steamed broccoli',
+            dinner: 'Salmon with roasted vegetables'
+        },
+        nutrients: ['Chromium', 'Magnesium', 'Fiber']
+    },
+    hypertension: {
+        meals: {
+            breakfast: 'Oatmeal with banana and chia seeds',
+            lunch: 'Spinach salad with grilled turkey',
+            dinner: 'Baked cod with brown rice'
+        },
+        nutrients: ['Potassium', 'Calcium', 'Omega-3']
+    },
+    general: { // Added a general nutrition plan
+        meals: {
+            breakfast: 'Fruit smoothie with yogurt',
+            lunch: 'Mixed vegetable salad with chickpeas',
+            dinner: 'Grilled chicken with brown rice and vegetables'
+        },
+        nutrients: ['Vitamins', 'Minerals', 'Fiber']
+    }
+};
+
 function getNutritionPlan() {
     const condition = document.getElementById('condition').value;
-    const resultDiv = document.getElementById('nutrition-result');
-    let plan = '';
+    const plan = nutritionPlans[condition] || nutritionPlans.general;
+    
+    document.getElementById('nutrition-result').innerHTML = `
+        <div class="nutrition-card">
+            <h3>${condition.toUpperCase()} DIET PLAN</h3>
+            <div class="meal-plan">
+                ${Object.entries(plan.meals).map(([meal, items]) => `
+                    <div class="meal">
+                        <h4>${meal}</h4>
+                        <p>${items}</p>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="nutrients">
+                <h4>Key Nutrients:</h4>
+                <ul>${plan.nutrients.map(n => `<li>${n}</li>`).join('')}</ul>
+            </div>
+        </div>
+    `;
+}
 
-    // Simple AI-like logic (for demo purposes)
-    switch (condition) {
-        case 'diabetes':
-            plan = 'Recommendation: Low-carb meals (e.g., grilled chicken with vegetables). Avoid sugary drinks.';
-            break;
-        case 'hypertension':
-            plan = 'Recommendation: Low-sodium diet (e.g., steamed fish with greens). Limit salt intake.';
-            break;
-        case 'general':
-            plan = 'Recommendation: Balanced diet (e.g., quinoa salad with lean protein). Stay hydrated.';
-            break;
+// Hydration Tracker
+function handleWaterIntake(glass) {
+    const amount = parseInt(glass.dataset.amount);
+    waterIntake += amount;
+    glass.style.backgroundColor = '#B3E5FC';
+    localStorage.setItem('waterIntake', waterIntake.toString());
+    updateHydrationDisplay(waterIntake);
+}
+
+function updateHydrationDisplay(intake) {
+    document.getElementById('water-total').textContent = intake;
+    document.getElementById('hydration-progress').style.width = 
+        `${Math.min((intake / 2000) * 100, 100)}%`;
+}
+
+// Contact Form Handler
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    if ([...formData.values()].every(Boolean)) {
+        showNotification('Message sent successfully!');
+        this.reset();
+    } else {
+        showNotification('Please fill all fields!', true);
     }
+});
 
-    resultDiv.innerHTML = <strong>Your Plan:</strong> ${plan};
+// Utility Functions
+function showNotification(message, isError = false) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${isError ? 'error' : 'success'}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function showDetail(condition) {
+    // Implement detailed information modal
+    console.log('Showing details for:', condition);
 }

@@ -1,62 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HealthSync - Your Health Companion</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
-        <h1>HealthSync</h1>
-        <nav>
-            <ul>
-                <li><a href="#symptom-checker">Symptom Checker</a></li>
-                <li><a href="#med-tracker">Medication Tracker</a></li>
-                <li><a href="#nutrition-guide">Nutrition Guide</a></li>
-            </ul>
-        </nav>
-    </header>
+<div class="health-section">
+    <!-- Enhanced Symptom Checker -->
+    <div class="symptom-checker">
+        <h2>AI-Powered Symptom Analysis</h2>
+        <textarea id="symptoms" placeholder="Describe your symptoms (e.g., fever, headache, nausea)..."></textarea>
+        <button onclick="checkSymptoms()">Analyze Symptoms</button>
+        <div id="diagnosis-result"></div>
+        
+        <!-- Symptom Severity Assessment -->
+        <div class="severity-scale">
+            <h3>Symptom Severity</h3>
+            <div class="severity-levels">
+                <button class="severity-btn" data-level="1" onclick="setSeverity(1)">Mild</button>
+                <button class="severity-btn" data-level="2" onclick="setSeverity(2)">Moderate</button>
+                <button class="severity-btn" data-level="3" onclick="setSeverity(3)">Severe</button>
+            </div>
+            <p id="severity-feedback"></p>
+        </div>
+    </div>
 
-    <main>
-        <!-- Symptom Checker Section -->
-        <section id="symptom-checker">
-            <h2>AI-Powered Symptom Checker</h2>
-            <p>Enter your symptoms below to get a preliminary diagnosis.</p>
-            <textarea id="symptoms" placeholder="e.g., fever, cough, headache"></textarea>
-            <button onclick="checkSymptoms()">Check Symptoms</button>
-            <div id="diagnosis-result"></div>
-        </section>
+    <!-- Comprehensive Medication Tracker -->
+    <div class="medication-manager">
+        <h2>Smart Medication Management</h2>
+        <form id="med-form">
+            <input type="text" id="med-name" placeholder="Medication Name" required>
+            <input type="time" id="med-time" required>
+            <input type="number" id="med-dosage" placeholder="Dosage (mg)" min="1" required>
+            <select id="med-frequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="as_needed">As Needed</option>
+            </select>
+            <button type="submit">Add Reminder</button>
+        </form>
+        <div id="med-list"></div>
+        
+        <!-- Medication History -->
+        <div class="med-history">
+            <h3>Medication History</h3>
+            <div id="med-history-chart"></div>
+        </div>
+    </div>
+</div>
 
-        <!-- Medication Tracker Section -->
-        <section id="med-tracker">
-            <h2>Medication Reminder & Tracker</h2>
-            <form id="med-form">
-                <input type="text" id="med-name" placeholder="Medication Name" required>
-                <input type="time" id="med-time" required>
-                <button type="submit">Add Medication</button>
-            </form>
-            <ul id="med-list"></ul>
-        </section>
-
-        <!-- Nutrition Guide Section -->
-        <section id="nutrition-guide">
-            <h2>Health & Nutrition Guide</h2>
-            <p>Get diet recommendations based on your condition.</p>
-            <select id="condition">
+<div class="nutrition-section">
+    <!-- Enhanced Nutrition Guide -->
+    <div class="nutrition-planner">
+        <h2>Personalized Nutrition Advisor</h2>
+        <div class="nutrition-inputs">
+            <select id="condition" onchange="getNutritionPlan()">
+                <option value="general">General Health</option>
                 <option value="diabetes">Diabetes</option>
                 <option value="hypertension">Hypertension</option>
-                <option value="general">General Health</option>
+                <option value="thyroid">Thyroid Issues</option>
+                <option value="pcos">PCOS</option>
+                <option value="kidney">Kidney Disease</option>
+                <option value="heart">Heart Disease</option>
+                <option value="gout">Gout</option>
+                <option value="celiac">Celiac Disease</option>
             </select>
-            <button onclick="getNutritionPlan()">Get Plan</button>
-            <div id="nutrition-result"></div>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 HealthSync. All rights reserved.</p>
-    </footer>
-
-    <script src="script.js"></script>
-</body>
-</html>
+            <input type="number" id="calories" placeholder="Daily Calorie Goal">
+        </div>
+        
+        <!-- Comprehensive Nutrition Plan -->
+        <div id="nutrition-result"></div>
+        
+        <!-- Meal Planning -->
+        <div class="meal-plan">
+            <h3>Sample Daily Meal Plan</h3>
+            <div class="meal-cards">
+                <div class="meal-card" data-time="breakfast">
+                    <h4>Breakfast</h4>
+                    <ul class="meal-suggestions"></ul>
+                </div>
+                <div class="meal-card" data-time="lunch">
+                    <h4>Lunch</h4>
+                    <ul class="meal-suggestions"></ul>
+                </div>
+                <div class="meal-card" data-time="dinner">
+                    <h4>Dinner</h4>
+                    <ul class="meal-suggestions"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hydration Tracker -->
+        <div class="hydration-tracker">
+            <h3>Water Intake Tracker</h3>
+            <div class="water-glasses">
+                <div class="glass" data-amount="250"></div>
+                <div class="glass" data-amount="250"></div>
+                <div class="glass" data-amount="250"></div>
+                <div class="glass" data-amount="250"></div>
+                <div class="glass" data-amount="250"></div>
+            </div>
+            <p>Total: <span id="water-total">0</span> ml</p>
+        </div>
+    </div>
+</div>
